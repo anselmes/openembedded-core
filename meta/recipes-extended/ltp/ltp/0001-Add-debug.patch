@@ -1,0 +1,67 @@
+From 4ed31326ec707698b617ac420808365db68d580d Mon Sep 17 00:00:00 2001
+From: Mathieu Dubois-Briand <mathieu.dubois-briand@bootlin.com>
+Date: Thu, 5 Feb 2026 18:09:48 +0100
+Subject: [PATCH] Add debug
+
+Upstream-Status: Inappropriate [debug]
+
+Signed-off-by: Mathieu Dubois-Briand <mathieu.dubois-briand@bootlin.com>
+---
+ testcases/open_posix_testsuite/bin/run-tests.sh                | 1 +
+ .../conformance/interfaces/sched_setparam/2-1.c                | 2 +-
+ .../conformance/interfaces/sched_setparam/2-2.c                | 2 +-
+ testcases/open_posix_testsuite/include/posixtest.h             | 3 +++
+ 4 files changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/testcases/open_posix_testsuite/bin/run-tests.sh b/testcases/open_posix_testsuite/bin/run-tests.sh
+index c2fddcf53733..b05b80850120 100755
+--- a/testcases/open_posix_testsuite/bin/run-tests.sh
++++ b/testcases/open_posix_testsuite/bin/run-tests.sh
+@@ -46,6 +46,7 @@ run_test() {
+ 
+ 	complog=$(basename $testname).log.$$
+ 
++	echo "Running ${testname}"
+ 	sh -c "$SCRIPT_DIR/t0 $TIMEOUT_VAL ./$1 $(cat ./$(echo "$1" | sed 's,\.[^\.]*,,').args 2>/dev/null)" > $complog 2>&1
+ 
+ 	ret_code=$?
+diff --git a/testcases/open_posix_testsuite/conformance/interfaces/sched_setparam/2-1.c b/testcases/open_posix_testsuite/conformance/interfaces/sched_setparam/2-1.c
+index ee106c677a50..04c44cf78132 100644
+--- a/testcases/open_posix_testsuite/conformance/interfaces/sched_setparam/2-1.c
++++ b/testcases/open_posix_testsuite/conformance/interfaces/sched_setparam/2-1.c
+@@ -74,7 +74,7 @@ static void sigterm_handler(int signum PTS_ATTRIBUTE_UNUSED)
+ 	dup2(the_pipe[1], STDOUT);
+ 	close(the_pipe[1]);
+ 
+-	printf("*%i*", count);
++	base_printf("*%i*", count);
+ 	fflush(stdout);
+ 
+ 	exit(0);
+diff --git a/testcases/open_posix_testsuite/conformance/interfaces/sched_setparam/2-2.c b/testcases/open_posix_testsuite/conformance/interfaces/sched_setparam/2-2.c
+index c81ffd374a23..3f9e21b42b92 100644
+--- a/testcases/open_posix_testsuite/conformance/interfaces/sched_setparam/2-2.c
++++ b/testcases/open_posix_testsuite/conformance/interfaces/sched_setparam/2-2.c
+@@ -74,7 +74,7 @@ static void sigterm_handler(int signum PTS_ATTRIBUTE_UNUSED)
+ 	dup2(the_pipe[1], STDOUT);
+ 	close(the_pipe[1]);
+ 
+-	printf("*%i*", count);
++	base_printf("*%i*", count);
+ 	fflush(stdout);
+ 
+ 	exit(0);
+diff --git a/testcases/open_posix_testsuite/include/posixtest.h b/testcases/open_posix_testsuite/include/posixtest.h
+index 01d9ef2a542c..a49ce566fe69 100644
+--- a/testcases/open_posix_testsuite/include/posixtest.h
++++ b/testcases/open_posix_testsuite/include/posixtest.h
+@@ -49,3 +49,6 @@
+                  /* https://gcc.gnu.org/bugzilla/show_bug.cgi?id=66425 */ \
+          } \
+ } while (0)
++
++#define printf(fmt, ...) printf("%s %d: " fmt, __FILE__, __LINE__,  ##__VA_ARGS__)
++#define base_printf(...) dprintf(1, __VA_ARGS__)
+-- 
+2.47.3
+
