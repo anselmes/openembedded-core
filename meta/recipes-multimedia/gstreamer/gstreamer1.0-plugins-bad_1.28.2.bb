@@ -19,7 +19,9 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=4fbd65380cdd255951079008b364516c"
 
 DEPENDS += "gstreamer1.0-plugins-base"
 
-inherit gobject-introspection
+inherit gobject-introspection features_check
+
+ANY_OF_DISTRO_FEATURES = "${@bb.utils.contains('DISTRO_FEATURES', 'vulkan', 'x11 wayland', '', d)}"
 
 PACKAGECONFIG ??= " \
     ${GSTREAMER_ORC} \
