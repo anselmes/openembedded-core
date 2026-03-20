@@ -1,0 +1,54 @@
+From 1fd7e490a082ffb450283c43c3635e80110091e7 Mon Sep 17 00:00:00 2001
+From: Wang Mingyu <wangmy@fujitsu.com>
+Date: Fri, 20 Mar 2026 09:02:18 +0000
+Subject: [PATCH] Update gen/generate-bindings to output to directory name
+
+Upstream-Status: Backport [https://github.com/spdx/spdx-python-model/commit/678f5af062743cb8a84fdb24bb9e63963464c86b]
+
+Signed-off-by: Wang Mingyu <wangmy@fujitsu.com>
+---
+ gen/generate-bindings | 4 ++--
+ pyproject.toml        | 6 +++---
+ 2 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/gen/generate-bindings b/gen/generate-bindings
+index bc7041e..d1e06aa 100755
+--- a/gen/generate-bindings
++++ b/gen/generate-bindings
+@@ -21,14 +21,14 @@ for v in $SPDX_VERSIONS; do
+             --context-url "file://${SHACL2CODE_SPDX_DIR}/$v/spdx-context.jsonld" https://spdx.org/rdf/$v/spdx-context.jsonld  \
+             --license Apache-2.0 \
+             python \
+-            -o "$MODNAME.py"
++            --output "$MODNAME"
+     else
+         shacl2code generate --input https://spdx.org/rdf/$v/spdx-model.ttl \
+             --input https://spdx.org/rdf/$v/spdx-json-serialize-annotations.ttl \
+             --context https://spdx.org/rdf/$v/spdx-context.jsonld \
+             --license Apache-2.0 \
+             python \
+-            -o "$MODNAME.py"
++i           --output "$MODNAME"
+     fi
+ 
+     echo "from . import $MODNAME" >> __init__.py
+diff --git a/pyproject.toml b/pyproject.toml
+index a0a5f4d..7075375 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -32,9 +32,9 @@ Issues = "https://github.com/spdx/spdx-python-model/issues"
+ 
+ [build-system]
+ requires = [
+-    "hatchling",
+-    "hatch-build-scripts",
+-    "shacl2code == 0.0.24",
++    "hatchling >= 1.27.0",
++    "hatch-build-scripts >= 0.0.4",
++    "shacl2code == 1.0.0",
+ ]
+ build-backend = "hatchling.build"
+ 
+-- 
+2.43.0
+

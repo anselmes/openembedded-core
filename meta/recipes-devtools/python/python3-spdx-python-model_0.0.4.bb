@@ -12,6 +12,7 @@ SRC_URI += " \
     https://spdx.org/rdf/3.0.1/spdx-json-serialize-annotations.ttl;name=spdx2 \
     https://spdx.org/rdf/3.0.1/spdx-model.ttl;name=spdx3 \
     file://0001-generate-bindings-allow-to-use-local-files.patch \
+    file://0001-Update-gen-generate-bindings-to-output-to-directory-.patch \
 "
 
 SRC_URI[spdx1.sha256sum] = "c72b0928f094c83e5c127784edb1ebca2af74a104fcacc007c332b23cbc788bd"
