@@ -54,6 +54,13 @@ def imagetypes_getdepends(d):
     # Sort the set so that ordering is consistant
     return " ".join(sorted(deps))
 
+def get_max_image_size(d, fs):
+    max_size = d.getVar("IMAGE_FILE_MAXSIZE:%s" % fs)
+    if max_size is not None:
+        return max_size
+
+    return 0
+
 XZ_COMPRESSION_LEVEL ?= "-6"
 XZ_INTEGRITY_CHECK ?= "crc32"
 
