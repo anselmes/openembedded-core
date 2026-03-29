@@ -234,6 +234,59 @@ UBINIZE_ARGS_mtd_4_256 ?= "-m 4096 -p 256KiB"
                 self.assertTrue(os.path.exists(image_path),
                                 "%s image %s doesn't exist" % (itype, image_path))
 
+    def test_image_maxsize_success(self):
+        """
+        Summary:     Check if the image built is below maximum size if set
+        Expected:    image is built, size below the limit and no error are reported
+        Product:     oe-core
+        Author:      Charles-Antoine Couret <charles-antoine.couret@mind.be>
+        """
+        image = 'core-image-minimal'
+
+        config = """
+IMAGE_FSTYPES += "ext4"
+IMAGE_FILE_MAXSIZE:ext4 = "300000"
+"""
+        self.write_config(config)
+
+        res = bitbake(image)
+        bb_vars = get_bb_vars(['DEPLOY_DIR_IMAGE', 'IMAGE_LINK_NAME'], image)
+
+        link_path = os.path.join(bb_vars['DEPLOY_DIR_IMAGE'], "%s.%s" % (bb_vars['IMAGE_LINK_NAME'], "ext4"))
+        image_path = os.path.realpath(link_path)
+        # check if result image is in deploy directory
+        self.assertTrue(os.path.exists(link_path),
+                        "%s image %s does not exist" % ("ext4", link_path))
+        # check if result image size is below than maximum value
+        self.assertTrue(os.stat(image_path).st_size / 1024 <= 300000)
+        # No error during execution
+        self.assertEqual(res.status, 0)
+
+    def test_image_maxsize_failure(self):
+        """
+        Summary:     Check if the image built with size above limit is triggering error
+        Expected:    the image size is above limit and triggers error
+        Product:     oe-core
+        Author:      Charles-Antoine Couret <charles-antoine.couret@mind.be>
+        """
+        image = 'core-image-minimal'
+
+        config = """
+IMAGE_FSTYPES += "ext4"
+IMAGE_FILE_MAXSIZE:ext4 = "1000"
+"""
+        self.write_config(config)
+
+        res = bitbake(image, ignore_status=True)
+        bb_vars = get_bb_vars(['DEPLOY_DIR_IMAGE', 'IMAGE_LINK_NAME'], image)
+
+        link_path = os.path.join(bb_vars['DEPLOY_DIR_IMAGE'], "%s.%s" % (bb_vars['IMAGE_LINK_NAME'], "ext4"))
+        # check if result image is not generated
+        self.assertFalse(os.path.exists(link_path),
+                        "%s image %s exists" % ("ext4", link_path))
+        # Error triggered during execution
+        self.assertNotEqual(res.status, 0)
+
     def test_useradd_static(self):
         config = """
 USERADDEXTENSION = "useradd-staticids"

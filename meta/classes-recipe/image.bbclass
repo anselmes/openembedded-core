@@ -524,6 +524,7 @@ python () {
         d.setVarFlag(task, 'imagetype', t)
 
         d.appendVarFlag(task, 'prefuncs', ' ' + debug + ' set_image_size')
+        d.prependVarFlag(task, 'postfuncs', 'check_image_max_size ')
         d.prependVarFlag(task, 'postfuncs', 'create_symlinks ')
         d.appendVarFlag(task, 'subimages', ' ' + ' '.join(subimages))
         d.appendVarFlag(task, 'vardeps', ' ' + ' '.join(vardeps))
@@ -624,6 +625,34 @@ python create_symlinks() {
             os.symlink(src, dst)
         else:
             bb.note("Skipping symlink, source does not exist: %s -> %s" % (dst, src))
+}
+
+#
+# Check if image size is lighter than maximum size
+#
+python check_image_max_size() {
+    def get_max_image_size(d, fs):
+        max_size = d.getVar("IMAGE_FILE_MAXSIZE:%s" % fs)
+        if max_size is not None:
+            return int(max_size)
+
+        return None
+
+    deploy_dir = d.getVar('IMGDEPLOYDIR')
+    img_name = d.getVar('IMAGE_NAME')
+    taskname = d.getVar("BB_CURRENTTASK")
+    subimages = (d.getVarFlag("do_" + taskname, 'subimages', False) or "").split()
+
+    for type in subimages:
+        file_name = os.path.join(deploy_dir, img_name + "." + type)
+
+        if os.path.exists(file_name):
+            file_size = os.stat(file_name).st_size / 1024
+            max_size = get_max_image_size(d, type)
+            if max_size is not None:
+                if file_size > max_size:
+                    bb.fatal("The image %s size %d(K) exceeds IMAGE_FILE_MAXSIZE: %d(K)" % \
+                   (file_name, file_size, max_size))
 }
 
 python write_image_output_manifest() {
