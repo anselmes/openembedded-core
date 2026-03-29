@@ -77,11 +77,18 @@ IMAGE_CMD:cramfs = "mkfs.cramfs ${IMAGE_ROOTFS} ${IMGDEPLOYDIR}/${IMAGE_NAME}.cr
 
 oe_mkext234fs () {
 	fstype=$1
+	image_file_maxsize=$2
 	extra_imagecmd=""
+	rootfs_file_size=$ROOTFS_SIZE
 
-	if [ $# -gt 1 ]; then
-		shift
+	if [ $# -gt 2 ]; then
+		shift 2
 		extra_imagecmd=$@
+	fi
+
+
+	if [ ${image_file_maxsize} -ne 0 ]; then
+		rootfs_file_size=${image_file_maxsize}
 	fi
 
 	# If generating an empty image the size of the sparse block should be large
@@ -89,12 +96,13 @@ oe_mkext234fs () {
 	# about 60K, so dd needs a minimum count of 60, with bs=1024 (bytes per IO)
 	eval local COUNT=\"0\"
 	eval local MIN_COUNT=\"60\"
-	if [ $ROOTFS_SIZE -lt $MIN_COUNT ]; then
+	if [ $rootfs_file_size -lt $MIN_COUNT ]; then
 		eval COUNT=\"$MIN_COUNT\"
 	fi
+
 	# Create a sparse image block
-	bbdebug 1 Executing "dd if=/dev/zero of=${IMGDEPLOYDIR}/${IMAGE_NAME}.$fstype seek=$ROOTFS_SIZE count=$COUNT bs=1024"
-	dd if=/dev/zero of=${IMGDEPLOYDIR}/${IMAGE_NAME}.$fstype seek=$ROOTFS_SIZE count=$COUNT bs=1024
+	bbdebug 1 Executing "dd if=/dev/zero of=${IMGDEPLOYDIR}/${IMAGE_NAME}.$fstype seek=$rootfs_file_size count=$COUNT bs=1024"
+	dd if=/dev/zero of=${IMGDEPLOYDIR}/${IMAGE_NAME}.$fstype seek=$rootfs_file_size count=$COUNT bs=1024
 	bbdebug 1 "Actual Rootfs size:  `du -s ${IMAGE_ROOTFS}`"
 	bbdebug 1 "Actual Partition size: `stat -c '%s' ${IMGDEPLOYDIR}/${IMAGE_NAME}.$fstype`"
 	bbdebug 1 Executing "mkfs.$fstype -F $extra_imagecmd ${IMGDEPLOYDIR}/${IMAGE_NAME}.$fstype -d ${IMAGE_ROOTFS}"
@@ -103,9 +111,9 @@ oe_mkext234fs () {
 	fsck.$fstype -pvfD ${IMGDEPLOYDIR}/${IMAGE_NAME}.$fstype || [ $? -le 3 ]
 }
 
-IMAGE_CMD:ext2 = "oe_mkext234fs ext2 ${EXTRA_IMAGECMD}"
-IMAGE_CMD:ext3 = "oe_mkext234fs ext3 ${EXTRA_IMAGECMD}"
-IMAGE_CMD:ext4 = "oe_mkext234fs ext4 ${EXTRA_IMAGECMD}"
+IMAGE_CMD:ext2 = "oe_mkext234fs ext2 ${@get_max_image_size(d, 'ext2')} ${EXTRA_IMAGECMD}"
+IMAGE_CMD:ext3 = "oe_mkext234fs ext3 ${@get_max_image_size(d, 'ext3')} ${EXTRA_IMAGECMD}"
+IMAGE_CMD:ext4 = "oe_mkext234fs ext4 ${@get_max_image_size(d, 'ext4')} ${EXTRA_IMAGECMD}"
 
 MIN_BTRFS_SIZE ?= "16384"
 IMAGE_CMD:btrfs () {
