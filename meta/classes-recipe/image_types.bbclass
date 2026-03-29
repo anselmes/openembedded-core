@@ -276,6 +276,12 @@ IMAGE_CMD:f2fs () {
         # 500M the standard IMAGE_OVERHEAD_FACTOR does not work, so add additional
         # space here when under 500M
 	size=${ROOTFS_SIZE}
+	image_file_maxsize=${@get_max_image_size(d, "f2fs")}
+
+	if [ ${image_file_maxsize} -ne 0 ]; then
+		size=${image_file_maxsize}
+	fi
+
 	if [ ${size} -lt ${MIN_F2FS_SIZE} ] ; then
 		size=${MIN_F2FS_SIZE}
 		bbwarn "Rootfs size is too small for F2FS. Filesystem will be extended to ${size}K"
