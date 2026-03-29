@@ -118,6 +118,12 @@ IMAGE_CMD:ext4 = "oe_mkext234fs ext4 ${@get_max_image_size(d, 'ext4')} ${EXTRA_I
 MIN_BTRFS_SIZE ?= "16384"
 IMAGE_CMD:btrfs () {
 	size=${ROOTFS_SIZE}
+	image_file_maxsize=${@get_max_image_size(d, "btrfs")}
+
+	if [ ${image_file_maxsize} -ne 0 ]; then
+		size=${image_file_maxsize}
+	fi
+
 	if [ ${size} -lt ${MIN_BTRFS_SIZE} ] ; then
 		size=${MIN_BTRFS_SIZE}
 		bbwarn "Rootfs size is too small for BTRFS. Filesystem will be extended to ${size}K"
