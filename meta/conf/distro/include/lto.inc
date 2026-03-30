@@ -4,6 +4,7 @@
 #
 
 # Disable LTO for following packages
+LTO:pn-e2fsprogs = ""
 LTO:pn-glibc = ""
 LTO:pn-gcc-runtime = ""
 LTO:pn-libgcc-initial = ""
