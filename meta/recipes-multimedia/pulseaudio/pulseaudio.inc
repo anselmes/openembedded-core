@@ -166,6 +166,7 @@ PACKAGES =+ "\
              libpulse-simple \
              libpulsecommon \
              libpulsecore \
+             ${PN}-pactl \
              ${PN}-pa-info \
              ${PN}-server \
              ${PN}-misc \
@@ -194,8 +195,9 @@ FILES:libpulse-mainloop-glib = "${libdir}/libpulse-mainloop-glib.so.*"
 
 FILES:${PN}-dev += "${datadir}/vala"
 FILES:${PN}-bin += "${sysconfdir}/default/volatiles/04_pulse"
+FILES:${PN}-pactl = "${bindir}/pactl"
 FILES:${PN}-pa-info = "${bindir}/pa-info"
-FILES:${PN}-server = "${bindir}/pulseaudio ${bindir}/start-* ${sysconfdir} ${bindir}/pactl */udev/rules.d/*.rules */*/udev/rules.d/*.rules ${systemd_user_unitdir}/*"
+FILES:${PN}-server = "${bindir}/pulseaudio ${bindir}/start-* ${sysconfdir} */udev/rules.d/*.rules */*/udev/rules.d/*.rules ${systemd_user_unitdir}/*"
 FILES:${PN}-server += "${datadir}/dbus-1/system.d/pulseaudio-system.conf"
 
 #SYSTEMD_PACKAGES = "${PN}-server"
@@ -226,6 +228,9 @@ python populate_packages:prepend() {
     do_split_packages(d, plugindir, r'^module-(.*)\.so$', '${PN}-module-%s', 'PulseAudio module for %s', extra_depends='', prepend=True)
     do_split_packages(d, plugindir, r'^lib(.*)\.so$', '${PN}-lib-%s', 'PulseAudio library for %s', extra_depends='', prepend=True)
 }
+
+# pactl is a client tool; it requires libpulse and a PulseAudio-compatible server
+RDEPENDS:${PN}-pactl = "libpulse"
 
 # pa-info is a bash script that collects information about the audio setup.
 # It's primarily useful for attaching an information dump when reporting bugs.
