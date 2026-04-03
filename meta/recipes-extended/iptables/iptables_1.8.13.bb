@@ -21,7 +21,7 @@ SYSTEMD_SERVICE:${PN} = "\
     ${@bb.utils.contains('PACKAGECONFIG', 'ipv6', 'ip6tables.service', '', d)} \
 "
 
-inherit autotools pkgconfig systemd
+inherit autotools pkgconfig systemd update-alternatives
 
 EXTRA_OECONF = "--with-kernel=${STAGING_INCDIR}"
 
@@ -122,3 +122,8 @@ ALLOW_EMPTY:${PN}-modules = "1"
 INSANE_SKIP:${PN}-module-xt-conntrack = "dev-so"
 INSANE_SKIP:${PN}-module-xt-ct = "dev-so"
 INSANE_SKIP:${PN}-module-xt-nat = "dev-so"
+
+ALTERNATIVE:${PN} = ""
+ALTERNATIVE:${PN}:append = "${@bb.utils.contains('PACKAGECONFIG', 'libnftnl', ' ebtables', '', d)}"
+ALTERNATIVE_LINK_NAME[ebtables] = "${sbindir}/ebtables"
+ALTERNATIVE_PRIORITY[ebtables] = "100"
