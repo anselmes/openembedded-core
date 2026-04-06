@@ -157,6 +157,38 @@ def deploy(args, config, basepath, workspace):
         max_process = oe.utils.get_bb_number_threads(rd)
         fakerootcmd = rd.getVar('FAKEROOTCMD')
         fakerootenv = rd.getVar('FAKEROOTENV')
+
+        # Warn if the recipe creates users/groups without static IDs.
+        # Without useradd-staticids, pseudo assigns arbitrary UIDs/GIDs during
+        # the build. The target preinst scripts would normally re-create them
+        # with correct IDs and chown the files, but devtool deploy-target skips
+        # those scripts, so deployed files will have the wrong ownership.
+        useradd_packages = rd.getVar('USERADD_PACKAGES') or ''
+        if useradd_packages:
+            useraddextension = (rd.getVar('USERADDEXTENSION') or '').split()
+            if 'useradd-staticids' not in useraddextension:
+                users = set()
+                groups = set()
+                for pkg in useradd_packages.split():
+                    for param in (rd.getVar('USERADD_PARAM:%s' % pkg) or '').split(';'):
+                        param = param.strip().split()
+                        if param:
+                            users.add(param[-1])
+                    for param in (rd.getVar('GROUPADD_PARAM:%s' % pkg) or '').split(';'):
+                        param = param.strip().split()
+                        if param:
+                            groups.add(param[-1])
+                if users or groups:
+                    items = []
+                    if users:
+                        items.append('users: %s' % ', '.join(sorted(users)))
+                    if groups:
+                        items.append('groups: %s' % ', '.join(sorted(groups)))
+                    logger.warning('Recipe %s creates %s without static UID/GID '
+                                   'assignments (USERADDEXTENSION does not include '
+                                   '"useradd-staticids"). Deployed files may have '
+                                   'incorrect ownership on the target.'
+                                   % (args.recipename, ' and '.join(items)))
     finally:
         tinfoil.shutdown()
 
